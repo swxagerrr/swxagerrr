@@ -1,0 +1,51 @@
+#include <stdio.h>
+ {
+    int i, j;
+    int textLen = 0, wordLen = 0;
+
+    while (text[textLen] != '\0') {
+        textLen++;
+    }
+
+    while (word[wordLen] != '\0') {
+        wordLen++;
+    }
+
+    if (wordLen == 0) return 0;
+
+    for (i = 0; i <= textLen - wordLen; i++) {
+        for (j = 0; j < wordLen; j++) {
+            if (text[i + j] != word[j]) {
+                break;
+            }
+        }
+        if (j == wordLen) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+int main() {
+    char sentence[] = "The quick brown fox jumps over the lazy dog.";
+    char word1[] = "dog";
+    char word2[] = "cat";
+
+    int pos1 = indexOf(sentence, word1);
+    int pos2 = indexOf(sentence, word2);
+
+    if (pos1 != -1) {
+        printf("Слово \"%s\" найдено в позиции %d\n", word1, pos1);
+    } else {
+        printf("Слово \"%s\" не найдено\n", word1);
+    }
+
+    if (pos2 != -1) {
+        printf("Слово \"%s\" найдено в позиции %d\n", word2, pos2);
+    } else {
+        printf("Слово \"%s\" не найдено\n", word2);
+    }
+
+    return 0;
+}
