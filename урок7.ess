@@ -1,0 +1,270 @@
+global _start
+
+section .data
+    message db "Hello World", 10
+    len equ $ - message
+
+section .text
+_start:
+    mov eax, 4          ; sys_write
+    mov ebx, 1          ; stdout
+    mov ecx, message    ; адрес сообщения
+    mov edx, len        ; длина сообщения
+    int 0x80            ; вызов ядра
+
+    mov eax, 1          ; sys_exit
+    mov ebx, 0
+    int 0x80
+
+//изменили программу, используя меньше памяти//
+section .data
+    message db "Hi", 10
+    len equ $ - message
+
+//изменили программу, используя больше памяти//
+section .data
+    message db "Hello World Hello World Hello World Hello World Hello World", 10
+    len equ $ - message
+
+//четное и нечетное число//
+#include <stdio.h>
+
+int main() {
+    int num;
+    printf("Введите число: ");
+    scanf("%d", &num);
+
+    if (num % 2 == 0)
+        printf("Число %d - чётное\n", num);
+    else
+        printf("Число %d - нечётное\n", num);
+
+    return 0;
+}
+
+//четное число для Assembler//
+; even.asm - определяет чётность числа (одна цифра)
+
+global _start
+
+section .bss
+    num resb 2       ; буфер для ввода (1 символ + \n)
+
+section .text
+_start:
+    ; Читаем 1 символ с stdin
+    mov eax, 3       ; sys_read
+    mov ebx, 0       ; stdin
+    mov ecx, num
+    mov edx, 2
+    int 0x80
+
+    ; Конвертируем ASCII в число
+    movzx eax, byte [num]
+    sub eax, '0'
+
+    ; Проверяем чётность (eax & 1)
+    test eax, 1
+    jz even
+
+odd:
+    ; Выводим "Odd\n"
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, odd_msg
+    mov edx, odd_len
+    int 0x80
+    jmp exit
+
+even:
+    ; Выводим "Even\n"
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, even_msg
+    mov edx, even_len
+    int 0x80
+
+exit:
+    mov eax, 1
+    mov ebx, 0
+    int 0x80
+
+section .data
+even_msg db "Even", 10
+even_len equ $ - even_msg
+
+odd_msg db "Odd", 10
+odd_len equ $ - odd_msg
+
+//вод 2 чисел и вывод их суммы//
+global _start
+
+section .bss
+    input resb 4     ; 2 числа + пробел + \n
+
+section .text
+_start:
+    ; Читаем 4 символа (например: "3 5\n")
+    mov eax, 3
+    mov ebx, 0
+    mov ecx, input
+    mov edx, 4
+    int 0x80
+
+    ; Конвертируем первый символ
+    movzx eax, byte [input]
+    sub eax, '0'     ; eax = первое число
+
+    ; Конвертируем третий символ (второе число)
+    movzx ebx, byte [input+2]
+    sub ebx, '0'     ; ebx = второе число
+
+    add eax, ebx     ; сумма в eax
+
+    ; Конвертируем сумму обратно в ASCII (предполагается сумма < 10)
+    add eax, '0'
+    mov [result], al
+
+    ; Вывод результата
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, result
+    mov edx, 2       ; символ + \n
+    int 0x80
+
+    ; Выход
+    mov eax, 1
+    mov ebx, 0
+    int 0x80
+
+section .data
+result db '0', 10
+
+//задание 8//
+global _start
+
+section .bss
+    input resb 2       ; 1 символ + \n
+section .data
+    prompt db "Введите число (0 для выхода): ", 0
+    prompt_len equ $ - prompt
+    out_msg db "Сумма: ", 0
+    out_msg_len equ $ - out_msg
+    newline db 10
+
+section .bss
+    sum resb 4         ; сумма (int)
+section .text
+
+_start:
+    mov dword [sum], 0
+    mov ecx, 0          ; индекс = 0
+
+read_loop:
+    ; Выводим приглашение
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, prompt
+    mov edx, prompt_len
+    int 0x80
+
+    ; Читаем число (одна цифра)
+    mov eax, 3
+    mov ebx, 0
+    mov ecx, input
+    mov edx, 2
+    int 0x80
+
+    ; Конвертируем ASCII в число
+    movzx eax, byte [input]
+    sub eax, '0'
+    cmp eax, 0
+    je print_sum
+
+    ; Проверяем индекс и число на чётность
+    mov edx, ecx
+    and edx, 1          ; edx = индекс % 2
+    cmp edx, 0
+    jne next_index      ; если индекс нечётный — пропускаем
+
+    test eax, 1         ; проверяем число на чётность
+    jne next_index      ; если число нечётное — пропускаем
+
+    ; Добавляем к сумме
+    mov ebx, [sum]
+    add ebx, eax
+    mov [sum], ebx
+
+next_index:
+    inc ecx             ; индекс++
+    jmp read_loop
+
+print_sum:
+    ; Выводим сообщение "Сумма: "
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, out_msg
+    mov edx, out_msg_len
+    int 0x80
+
+    ; Конвертируем сумму в ASCII (предполагается < 10)
+    mov eax, [sum]
+    add eax, '0'
+    mov [input], al
+    mov byte [input+1], 10
+
+    ; Выводим сумму
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, input
+    mov edx, 2
+    int 0x80
+
+    ; Выход
+    mov eax, 1
+    mov ebx, 0
+    int 0x80
+
+//задание на C//
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    char *buffer = malloc(1000000);
+    if (!buffer) return 1;
+
+    for (int i = 0; i < 1000000; i++)
+        buffer[i] = 'A';
+
+    fwrite(buffer, 1, 1000000, stdout);
+    free(buffer);
+    return 0;
+}
+
+//задание на Assembler//
+global _start
+
+section .bss
+buffer resb 1000000
+
+section .text
+_start:
+    mov ecx, 1000000        ; размер буфера
+    mov edi, buffer         ; указатель на буфер
+
+fill_loop:
+    mov byte [edi], 'A'
+    inc edi
+    loop fill_loop
+
+    ; sys_write
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, buffer
+    mov edx, 1000000
+    int 0x80
+
+    ; sys_exit
+    mov eax, 1
+    mov ebx, 0
+    int 0x80
