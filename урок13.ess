@@ -1,0 +1,47 @@
+// программа на C с использованием pthread//
+#include <pthread.h>
+#include <stdio.h>
+
+pthread_mutex_t mutex;
+
+void* thread_func(void* arg) {
+    pthread_mutex_lock(&mutex);
+    printf("Привет из потока %ld\n", (long)arg);
+    pthread_mutex_unlock(&mutex);
+    return NULL;
+}
+
+int main() {
+    pthread_t thread1, thread2;
+    pthread_mutex_init(&mutex, NULL);
+
+    pthread_create(&thread1, NULL, thread_func, (void*)1);
+    pthread_create(&thread2, NULL, thread_func, (void*)2);
+
+    pthread_join(thread1, NULL);
+    pthread_join(thread2, NULL);
+
+    pthread_mutex_destroy(&mutex);
+    return 0;
+}
+
+//программа на C для типизации и конвертации типов//
+#include <stdio.h>
+
+int main() {
+    int i = 42;
+    double d = (double)i;  // конвертация int в double
+    char c = (char)i;      // конвертация int в char
+
+    printf("int: %d, double: %f, char: %c\n", i, d, c);
+    return 0;
+}
+
+//программа на Node.js для типизации и конвертации типов//
+let num = 42;
+let str = String(num);     // число в строку
+let bool = Boolean(num);   // число в булево значение
+
+console.log(typeof num, num);
+console.log(typeof str, str);
+console.log(typeof bool, bool);
